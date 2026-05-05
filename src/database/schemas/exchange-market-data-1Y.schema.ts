@@ -1,0 +1,46 @@
+// Mongoose schema for exchange_market_data_1Y (yearly / 1-year candles)
+
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+
+@Schema({ collection: 'exchange_tokens_candles_1Y', timestamps: true })
+export class ExchangeMarketData1YDocument extends Document {
+  @Prop({ required: true, maxlength: 50 })
+  tokenIdentifier: string;
+
+  @Prop({ required: true })
+  exchangeId: string;
+
+  @Prop({ required: true })
+  date: Date;
+
+  @Prop({ required: true })
+  open: string;
+
+  @Prop({ required: true })
+  high: string;
+
+  @Prop({ required: true })
+  low: string;
+
+  @Prop({ required: true })
+  close: string;
+
+  @Prop({ required: true })
+  volume: string;
+
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export const ExchangeMarketData1YSchema =
+  SchemaFactory.createForClass(ExchangeMarketData1YDocument);
+
+export type ExchangeMarketData1YEntity = ExchangeMarketData1YDocument;
+
+ExchangeMarketData1YSchema.index(
+  { tokenIdentifier: 1, exchangeId: 1, date: 1 },
+  { unique: true },
+);
+ExchangeMarketData1YSchema.index({ exchangeId: 1 });
+ExchangeMarketData1YSchema.index({ date: 1 });

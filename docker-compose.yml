@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: kaspamemes-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: ${DB_NAME:-kaspamemes}
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER:-}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD:-}
+    ports:
+      - '127.0.0.1:${DB_PORT:-27017}:27017'
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kaspamemes-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: kaspamemes-redis
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${REDIS_PORT:-6379}:6379'
+    command: >
+      sh -c "
+      if [ -n \"$$REDIS_PASSWORD\" ]; then
+        redis-server --requirepass \"$$REDIS_PASSWORD\" --appendonly yes
+      else
+        redis-server --appendonly yes
+      fi
+      "
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: >
+        sh -c "
+        if [ -n \"$$REDIS_PASSWORD\" ]; then
+          redis-cli -a \"$$REDIS_PASSWORD\" ping
+        else
+          redis-cli ping
+        fi
+        "
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - kaspamemes-network
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  kaspamemes-network:
+    driver: bridge
